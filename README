@@ -1,0 +1,4 @@
+# Repo for Packer Primer
+Contains examples for QEMU, Hyper-V, LXD, ESXi, and MAAS. Examples are for Ubuntu Focal (20.04) and Jammy (20.04).
+VMs are provisioned with the meta-data and user-data config files specified in /http.
+See inline comments for some per-hypervisor tweaks and additional settings.

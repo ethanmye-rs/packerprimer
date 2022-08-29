@@ -1,0 +1,3 @@
+# ignore all example folders but include . files
+output*/
+source/
