@@ -1,12 +1,3 @@
-# moved to their own 'variables.pkr.hcl' file, etc. Those files need to be
-# suffixed with '.pkr.hcl' to be visible to Packer. To use multiple files at
-# once they also need to be in the same folder. 'packer inspect folder/'
-# will describe to you what is in that folder.
-
-# Avoid mixing go templating calls ( for example ```{{ upper(`string`) }}``` )
-# and HCL2 calls (for example '${ var.string_value_example }' ). They won't be
-# executed together and the outcome will be unknown.
-
 source "hyperv-iso" "focal" {
   boot_wait = "4s"
   boot_command = [
@@ -23,7 +14,7 @@ source "hyperv-iso" "focal" {
   http_directory         = "http"
   iso_checksum           = "28ccdb56450e643bad03bb7bcf7507ce3d8d90e8bf09e38f6bd9ac298a98eaad"
   iso_url                = "source/ubuntu-20.04.4-live-server-amd64.iso"
-  memory                 = 1024
+  memory                 = var.memory # variable example
   ssh_password           = "ubuntu"
   ssh_username           = "ubuntu"
   ssh_timeout            = "2h"
@@ -49,7 +40,7 @@ source "hyperv-iso" "jammy" {
   http_directory         = "http"
   iso_checksum           = "28ccdb56450e643bad03bb7bcf7507ce3d8d90e8bf09e38f6bd9ac298a98eaad"
   iso_url                = "source/ubuntu-20.04.4-live-server-amd64.iso"
-  memory                 = 1024
+  memory                 = var.memory # variable example
   ssh_password           = "ubuntu"
   ssh_username           = "ubuntu"
   ssh_timeout            = "2h"
@@ -65,8 +56,8 @@ source "qemu" "focal" {
   output_directory       = "kvm-focal"
   shutdown_command       = "echo 'packer' | sudo -S shutdown -P now"
   disk_size              = "8G"
-  memory                 = 2048
-  format                 = "qcow2" #raw also supported
+  memory                 = var.memory # variable example
+  format                 = "qcow2"    #raw also supported
   accelerator            = "kvm"
   http_directory         = "http"
   ssh_username           = "ubuntu"
@@ -96,7 +87,7 @@ source "qemu" "jammy" {
   output_directory       = "kvm-output"
   shutdown_command       = "shutdown now"
   disk_size              = "8G"
-  memory                 = 2048
+  memory                 = var.memory # variable example
   format                 = "qcow2"
   accelerator            = "kvm"
   http_directory         = "http"
@@ -142,16 +133,63 @@ source "lxd" "jammy" {
   virtual_machine = true
 }
 
-source "vmware-iso" "jammy" {
-  iso_url = "source/ubuntu-22.04.1-live-server-amd64.iso"
-  iso_checksum = "10f19c5b2b8d6db711582e0e27f5116296c34fe4b313ba45f9b201a5007056cb"
-  ssh_username = "ubuntu"
-  ssh_password = "ubuntu"
+source "vmware-iso" "focal" {
+  iso_url          = "source/ubuntu-20.04.4-live-server-amd64.iso"
+  iso_checksum     = "28ccdb56450e643bad03bb7bcf7507ce3d8d90e8bf09e38f6bd9ac298a98eaad"
+  ssh_username     = "ubuntu"
+  ssh_password     = var.sudo_password #secret varaiable example
   shutdown_command = "shutdown -P now"
+  http_directory   = "http"
+  disk_size        = 40960
+  disk_type_id     = 0
+  guest_os_type    = "ubuntu64Guest"
+  vm_name          = "PackerVM"
+  cpus             = 2
+  memory           = var.memory
+  boot_command = [
+    "<esc><esc><esc>",
+    "<enter><wait>",
+    "/casper/vmlinuz ",
+    "root=/dev/sr0 ",
+    "initrd=/casper/initrd ",
+    "autoinstall ",
+    "ds=nocloud-net;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/",
+    "<enter>"
+  ]
+  boot_wait = "5s"
+  ssh_port  = 22
+}
+
+
+source "vmware-iso" "jammy" {
+  iso_url          = "source/ubuntu-22.04.1-live-server-amd64.iso"
+  iso_checksum     = "10f19c5b2b8d6db711582e0e27f5116296c34fe4b313ba45f9b201a5007056cb"
+  ssh_username     = "ubuntu"
+  ssh_password     = var.sudo_password #secret varaiable example
+  shutdown_command = "shutdown -P now"
+  http_directory   = "http"
+  disk_size        = 40960
+  disk_type_id     = 0
+  guest_os_type    = "ubuntu64Guest"
+  vm_name          = "PackerVM"
+  cpus             = 2
+  memory           = var.memory
+  boot_command = [
+    "<esc><esc><esc>",
+    "<enter><wait>",
+    "/casper/vmlinuz ",
+    "root=/dev/sr0 ",
+    "initrd=/casper/initrd ",
+    "autoinstall ",
+    "ds=nocloud-net;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/",
+    "<enter>"
+  ]
+  boot_wait = "5s"
+  ssh_port  = 22
 }
 
 build {
-  sources = ["qemu.focal"]
+  sources = ["lxd.jammy"] #swap this to build different images
 
   provisioner "shell" {
     inline = ["ls /"]
